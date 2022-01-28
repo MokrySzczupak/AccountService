@@ -1,6 +1,5 @@
 package account.security;
 
-import account.service.UserDetailsServiceImp;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -8,6 +7,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -17,10 +17,10 @@ import javax.sql.DataSource;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final UserDetailsServiceImp userDetailsService;
+    private final UserDetailsService userDetailsService;
     private final DataSource dataSource;
 
-    public SecurityConfig(UserDetailsServiceImp userDetailsService, DataSource dataSource) {
+    public SecurityConfig(UserDetailsService userDetailsService, DataSource dataSource) {
         this.userDetailsService = userDetailsService;
         this.dataSource = dataSource;
     }
@@ -38,6 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .mvcMatchers("/api/auth/signup").permitAll()
+                .mvcMatchers("/api/auth/changepass").authenticated()
                 .mvcMatchers("/api/empl/payment").authenticated()
                 .and()
                 .sessionManagement()
@@ -49,6 +50,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public PasswordEncoder getEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(13);
     }
 }

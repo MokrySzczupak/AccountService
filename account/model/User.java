@@ -6,6 +6,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Entity
 public class User {
@@ -16,9 +17,11 @@ public class User {
     private String name;
     @NotEmpty
     private String lastname;
+    @NotEmpty
     @Pattern(regexp = "\\w+(@acme.com)$")
     private String email;
     @NotEmpty
+    @Size(min = 12, message = "The password length must be at least 12 chars!")
     private String password;
 
     public String getName() {
