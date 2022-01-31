@@ -62,7 +62,7 @@ public class UserDetailsServiceImp implements UserDetailsService {
         return userRepository.save(user);
     }
 
-    private boolean userExist(String email) {
+    public boolean userExist(String email) {
         return userRepository.findByEmailIgnoreCase(email) != null;
     }
 

@@ -38,6 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .mvcMatchers("/api/auth/signup").permitAll()
+                .mvcMatchers("/api/acct/payments").permitAll()
                 .mvcMatchers("/api/auth/changepass").authenticated()
                 .mvcMatchers("/api/empl/payment").authenticated()
                 .and()

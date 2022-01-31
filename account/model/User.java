@@ -1,12 +1,10 @@
 package account.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Entity
 public class User {
@@ -23,6 +21,8 @@ public class User {
     @NotEmpty
     @Size(min = 12, message = "The password length must be at least 12 chars!")
     private String password;
+    @OneToMany(mappedBy = "employee")
+    private List<Payment> payments;
 
     public String getName() {
         return name;
