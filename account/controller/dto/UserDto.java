@@ -1,33 +1,24 @@
 package account.controller.dto;
 
+import account.model.Role;
 import account.model.User;
+import lombok.Data;
 
+import java.util.List;
+
+@Data
 public class UserDto {
     private final Long id;
     private final String name;
     private final String lastname;
     private final String email;
+    private final List<Role> roles;
 
     public UserDto(User user) {
         this.id = user.getId();
         this.name = user.getName();
         this.lastname = user.getLastname();
         this.email = user.getEmail();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public String getEmail() {
-        return email;
+        this.roles = user.getRoles();
     }
 }

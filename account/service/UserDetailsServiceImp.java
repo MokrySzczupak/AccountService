@@ -1,9 +1,9 @@
 package account.service;
 
-import account.exception.BreachedPasswordException;
-import account.exception.IdenticalPasswordException;
-import account.exception.PasswordLengthException;
-import account.exception.UserExistException;
+import account.controller.dto.ChangeRoleDto;
+import account.exception.*;
+import account.model.ChangeRoleOperation;
+import account.model.Role;
 import account.model.User;
 import account.model.UserDetailsImp;
 import account.repository.UserRepository;
@@ -52,13 +52,15 @@ public class UserDetailsServiceImp implements UserDetailsService {
         return user;
     }
 
-    @Transactional(rollbackOn = UserExistException.class)
+    @Transactional
     public User signup(User user, PasswordEncoder encoder) {
         if (userExist(user.getEmail())) {
             throw new UserExistException();
         }
         validatePassword(user.getPassword());
+        user.setEmail(user.getEmail().toLowerCase());
         user.setPassword(encoder.encode(user.getPassword()));
+        assertRole(user);
         return userRepository.save(user);
     }
 
@@ -81,6 +83,81 @@ public class UserDetailsServiceImp implements UserDetailsService {
         }
         if (password.length() < MINIMUM_PASSWORD_LENGTH) {
             throw new PasswordLengthException();
+        }
+    }
+
+    private void assertRole(User user) {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            user.addRole(Role.ROLE_ADMINISTRATOR);
+        } else {
+            user.addRole(Role.ROLE_USER);
+        }
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public void deleteUser(String email) {
+        User userToDelete = userRepository.findByEmailIgnoreCase(email);
+        if (userToDelete == null) {
+            throw new UserDoesNotExistException();
+        }
+        if (userToDelete.isAdmin()) {
+            throw new AdministratorRemoveException();
+        }
+        userRepository.delete(userToDelete);
+    }
+
+    @Transactional
+    public User changeUserRole(ChangeRoleDto changeRoleDto) {
+        User user = userRepository.findByEmailIgnoreCase(changeRoleDto.getUser());
+        validateUser(user);
+        Role role = validateRole(changeRoleDto, user);
+        if (changeRoleDto.getOperation().equals(ChangeRoleOperation.GRANT)) {
+            user.addRole(role);
+        } else {
+            user.removeRole(role);
+        }
+        return user;
+    }
+
+    private void validateUser(User user) {
+        if (user == null) {
+            throw new UserDoesNotExistException();
+        }
+    }
+
+    private Role validateRole(ChangeRoleDto changeRoleDto, User user) {
+        Role role;
+        try {
+            role = Role.valueOf("ROLE_" + changeRoleDto.getRole().toUpperCase());
+        } catch (Exception e) {
+            throw new RoleDoesNotExistException();
+        }
+        if (!user.hasRole(role) && changeRoleDto.getOperation().equals(ChangeRoleOperation.REMOVE)) {
+            throw new UserDoesNotHaveRoleException();
+        }
+        if (role.equals(Role.ROLE_ADMINISTRATOR) && changeRoleDto.getOperation().equals(ChangeRoleOperation.REMOVE)) {
+            throw new AdministratorRemoveException();
+        }
+        if (user.getRoles().size() <= 1 && changeRoleDto.getOperation().equals(ChangeRoleOperation.REMOVE)) {
+            throw new LastRoleDeletionException();
+        }
+        checkForRoleCombination(changeRoleDto, role, user);
+        return role;
+    }
+
+    private void checkForRoleCombination(ChangeRoleDto changeRoleDto, Role role, User user) {
+        if (changeRoleDto.getOperation().equals(ChangeRoleOperation.GRANT)) {
+            if (user.isAdmin()
+                    && (role.equals(Role.ROLE_USER) || role.equals(Role.ROLE_ACCOUNTANT))) {
+                throw new AdministrativeAndBusinessRoleCombinationException();
+            }
+            if (user.isBusiness() && role.equals(Role.ROLE_ADMINISTRATOR)) {
+                throw new AdministrativeAndBusinessRoleCombinationException();
+            }
         }
     }
 }

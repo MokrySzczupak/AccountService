@@ -1,7 +1,10 @@
 package account.security;
 
+import account.exception.AccessDeniedHandlerImp;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,15 +18,12 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import javax.sql.DataSource;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
     private final DataSource dataSource;
-
-    public SecurityConfig(UserDetailsService userDetailsService, DataSource dataSource) {
-        this.userDetailsService = userDetailsService;
-        this.dataSource = dataSource;
-    }
+    private final AccessDeniedHandlerImp accessDeniedHandler;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -37,16 +37,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.httpBasic()
                 .and()
                 .authorizeRequests()
-                .mvcMatchers("/api/auth/signup").permitAll()
-                .mvcMatchers("/api/acct/payments").permitAll()
-                .mvcMatchers("/api/auth/changepass").authenticated()
-                .mvcMatchers("/api/empl/payment").authenticated()
+                .mvcMatchers(HttpMethod.POST ,"/api/auth/signup").permitAll()
+                .mvcMatchers(HttpMethod.PUT ,"/api/acct/payments").hasRole("ACCOUNTANT")
+                .mvcMatchers(HttpMethod.POST ,"/api/auth/changepass").authenticated()
+                .mvcMatchers(HttpMethod.GET ,"/api/empl/payment").hasAnyRole("USER", "ACCOUNTANT")
+                .mvcMatchers(HttpMethod.POST ,"/api/acct/payments").hasRole("ACCOUNTANT")
+                .mvcMatchers(HttpMethod.GET ,"/api/admin/user").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.DELETE ,"/api/admin/user/**").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.PUT ,"/api/admin/user/role").hasRole("ADMINISTRATOR")
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .accessDeniedHandler(accessDeniedHandler);
     }
 
     @Bean

@@ -6,7 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Data
@@ -26,4 +26,31 @@ public class User {
     private String password;
     @OneToMany(mappedBy = "employee")
     private List<Payment> payments;
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<Role> roles = new ArrayList<>();
+
+    public void addRole(Role role) {
+        roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        roles.remove(role);
+    }
+
+    public List<Role> getRoles() {
+        Collections.sort(roles);
+        return roles;
+    }
+
+    public boolean isAdmin() {
+        return roles.contains(Role.ROLE_ADMINISTRATOR);
+    }
+
+    public boolean hasRole(Role role) {
+        return roles.contains(role);
+    }
+
+    public boolean isBusiness() {
+        return roles.contains(Role.ROLE_ACCOUNTANT) || roles.contains(Role.ROLE_USER);
+    }
 }
