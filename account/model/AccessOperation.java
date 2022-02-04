@@ -1,7 +1,7 @@
 package account.model;
 
-public enum ChangeRoleOperation {
-    GRANT, REMOVE;
+public enum AccessOperation {
+    LOCK, UNLOCK;
 
     public String getFormattedName() {
         return name().charAt(0) + name().substring(1).toLowerCase();

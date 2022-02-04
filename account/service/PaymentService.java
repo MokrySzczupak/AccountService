@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,15 +26,19 @@ public class PaymentService {
     public void savePayments(List<PaymentDto> payments) {
         for (PaymentDto paymentDto: payments) {
             User employee = ((UserDetailsImp) userDetailsService.loadUserByUsername(paymentDto.getEmployee())).getUser();
-            if (employee != null) {
-                Payment payment = new Payment();
-                payment.setEmployee(employee);
-                YearMonth period = validatePaymentAndGenerateProperDate(paymentDto);
-                payment.setPeriod(period);
-                checkIfPaymentAlreadyExist(payment);
-                payment.setSalary(payment.calculateSalary(paymentDto.getSalary()));
-                paymentRepository.save(payment);
-            }
+            savePaymentForEmployee(paymentDto, employee);
+        }
+    }
+
+    private void savePaymentForEmployee(PaymentDto paymentDto, User employee) {
+        if (employee != null) {
+            Payment payment = new Payment();
+            payment.setEmployee(employee);
+            YearMonth period = validatePaymentAndGenerateProperDate(paymentDto);
+            payment.setPeriod(period);
+            checkIfPaymentAlreadyExist(payment);
+            payment.setSalary(payment.calculateSalary(paymentDto.getSalary()));
+            paymentRepository.save(payment);
         }
     }
 
@@ -70,7 +75,8 @@ public class PaymentService {
     }
 
     public List<Payment> getPaymentsForEmployee(String email) {
-        return paymentRepository.getPaymentsByEmployee_EmailOrderByPeriodDesc(email);
+        List<Payment> payments = paymentRepository.getPaymentsByEmployee_EmailOrderByPeriodDesc(email);
+        return payments == null ? new ArrayList<>() : payments;
     }
 
     public Payment getPaymentForPeriodAndEmployee(String periodStr, String employee) {

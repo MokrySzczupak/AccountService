@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.*;
@@ -28,6 +29,8 @@ public class User {
     private List<Payment> payments;
     @ElementCollection(fetch = FetchType.EAGER)
     private List<Role> roles = new ArrayList<>();
+    @NotNull
+    private boolean lockedAccount;
 
     public void addRole(Role role) {
         roles.add(role);
@@ -38,8 +41,11 @@ public class User {
     }
 
     public List<Role> getRoles() {
-        Collections.sort(roles);
-        return roles;
+        SortedMap<String, Role> map = new TreeMap<>();
+        for (Role r: roles) {
+            map.put(r.name(), r);
+        }
+        return new ArrayList<>(map.values());
     }
 
     public boolean isAdmin() {
@@ -51,6 +57,8 @@ public class User {
     }
 
     public boolean isBusiness() {
-        return roles.contains(Role.ROLE_ACCOUNTANT) || roles.contains(Role.ROLE_USER);
+        return roles.contains(Role.ROLE_ACCOUNTANT) ||
+                roles.contains(Role.ROLE_USER) ||
+                roles.contains(Role.ROLE_AUDITOR);
     }
 }
