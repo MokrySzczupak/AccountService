@@ -35,6 +35,5 @@ public class AuthenticationEntryPointImp implements AuthenticationEntryPoint {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 }
