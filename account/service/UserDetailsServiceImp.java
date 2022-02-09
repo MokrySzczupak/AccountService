@@ -14,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,6 +21,7 @@ public class UserDetailsServiceImp implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final AuthenticationEntryPointImp authenticationEntryPoint;
+    private final BreachedPasswords breachedPasswords;
 
     private final short MINIMUM_PASSWORD_LENGTH = 12;
 
@@ -30,11 +30,8 @@ public class UserDetailsServiceImp implements UserDetailsService {
                                  AuthenticationEntryPointImp authenticationEntryPoint) {
         this.userRepository = userRepository;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.breachedPasswords = new BreachedPasswords();
     }
-
-    private final List<String> breachedPasswords = new ArrayList<>(List.of("PasswordForJanuary", "PasswordForFebruary", "PasswordForMarch", "PasswordForApril",
-            "PasswordForMay", "PasswordForJune", "PasswordForJuly", "PasswordForAugust",
-            "PasswordForSeptember", "PasswordForOctober", "PasswordForNovember", "PasswordForDecember"));
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
