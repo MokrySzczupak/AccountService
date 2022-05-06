@@ -1,12 +1,8 @@
 package com.example.accountservice.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
@@ -27,7 +23,7 @@ public class User {
     @NotEmpty
     private String lastname;
     @NotEmpty
-    @Pattern(regexp = "\\w+(@acme.com)$")
+    @Pattern(regexp = "\\w+(@acme.com)$", message = "The email must looks like: 'login@acme.com'")
     private String email;
     @NotEmpty
     @Size(min = 12, message = "The password length must be at least 12 chars!")

@@ -85,4 +85,7 @@ public class PaymentService {
         return paymentRepository.getPaymentByEmployee_EmailIgnoreCaseAndPeriod(employee, period);
     }
 
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
 }
