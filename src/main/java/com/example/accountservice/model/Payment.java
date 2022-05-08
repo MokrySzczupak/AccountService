@@ -25,7 +25,6 @@ public class Payment {
     @NotNull
     @ManyToOne
     @JsonBackReference
-    @JsonIgnore
     private User employee;
 
     @Transient

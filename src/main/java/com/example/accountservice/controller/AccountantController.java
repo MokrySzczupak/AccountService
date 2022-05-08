@@ -3,6 +3,7 @@ package com.example.accountservice.controller;
 import com.example.accountservice.controller.dto.PaymentDto;
 import com.example.accountservice.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,5 +27,10 @@ public class AccountantController {
     public Map<String, String> updatePayment(@RequestBody PaymentDto payment) {
         paymentService.updatePayment(payment);
         return new ConcurrentHashMap<>(Map.of("status", "Updated successfully!"));
+    }
+
+    @GetMapping("/payments")
+    public ResponseEntity<?> getAllPaymentsOfAllUsers() {
+        return ResponseEntity.ok(paymentService.getAllPayments());
     }
 }

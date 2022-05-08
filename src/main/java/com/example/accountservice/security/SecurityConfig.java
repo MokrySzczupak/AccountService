@@ -12,6 +12,11 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,6 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().headers().frameOptions().disable();
+        http.cors();
         http.httpBasic()
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .and()
@@ -36,13 +42,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .mvcMatchers(HttpMethod.POST, "/actuator/shutdown").permitAll() // for tests reason
                 .mvcMatchers(HttpMethod.POST ,"/api/auth/signup").permitAll()
                 .mvcMatchers(HttpMethod.PUT ,"/api/acct/payments").hasRole("ACCOUNTANT")
-                .mvcMatchers(HttpMethod.POST ,"/api/auth/changepass").hasAnyRole("ACCOUNTANT", "USER", "ADMINISTRATOR")
-                .mvcMatchers(HttpMethod.GET ,"/api/empl/payment").hasAnyRole("USER", "ACCOUNTANT")
+                .mvcMatchers(HttpMethod.POST ,"/api/auth/changepass")
+                    .hasAnyRole("ACCOUNTANT", "USER", "ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.GET ,"/api/empl/payment")
+                    .hasAnyRole("USER", "ACCOUNTANT", "ADMINISTRATOR", "AUDITOR")
                 .mvcMatchers(HttpMethod.POST ,"/api/acct/payments").hasRole("ACCOUNTANT")
                 .mvcMatchers(HttpMethod.GET ,"/api/admin/user").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.DELETE ,"/api/admin/user/**").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.PUT ,"/api/admin/user/role").hasRole("ADMINISTRATOR")
+                .mvcMatchers(HttpMethod.PUT ,"/api/admin/user/access").hasRole("ADMINISTRATOR")
                 .mvcMatchers(HttpMethod.GET ,"/api/security/events").hasRole("AUDITOR")
+                .mvcMatchers(HttpMethod.GET ,"/api/acct/payments").hasRole("ACCOUNTANT")
+                .and()
+                .formLogin()
+                .defaultSuccessUrl("/success")
+                .failureForwardUrl("/failure")
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -54,5 +68,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder getEncoder() {
         return new BCryptPasswordEncoder(13);
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration corsConfiguration = new CorsConfiguration().applyPermitDefaultValues();
+        corsConfiguration.setAllowedOrigins(List.of("http://34.116.174.200"));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
     }
 }
